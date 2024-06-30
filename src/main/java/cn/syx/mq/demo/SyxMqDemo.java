@@ -2,7 +2,7 @@ package cn.syx.mq.demo;
 
 import cn.syx.mq.core.SyxBroker;
 import cn.syx.mq.core.SyxConsumer;
-import cn.syx.mq.core.SyxMessage;
+import cn.syx.mq.model.SyxMessage;
 import cn.syx.mq.core.SyxProducer;
 import lombok.SneakyThrows;
 

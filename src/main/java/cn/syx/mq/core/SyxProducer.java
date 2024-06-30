@@ -1,5 +1,7 @@
 package cn.syx.mq.core;
 
+import cn.syx.mq.model.SyxMessage;
+
 import java.util.Objects;
 
 public class SyxProducer {
