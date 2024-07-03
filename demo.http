@@ -1,0 +1,28 @@
+### sub
+GET http://127.0.0.1:8765/syxmq/sub?t=cn.syx.test&cid=SYX_TEST
+Content-Type: application/json
+
+### unsub
+GET http://127.0.0.1:8765/syxmq/unsub?t=cn.syx.test&cid=SYX_TEST
+Content-Type: application/json
+
+### send
+POST http://127.0.0.1:8765/syxmq/send?t=cn.syx.test
+Content-Type: application/json
+
+{
+  "id": 123,
+  "data": {
+    "id": 1,
+    "item": "syx",
+    "price": 400.0
+  }
+}
+
+### recv
+GET http://127.0.0.1:8765/syxmq/recv?t=cn.syx.test&cid=SYX_TEST
+Content-Type: application/json
+
+### ack
+GET http://127.0.0.1:8765/syxmq/ack?t=cn.syx.test&cid=SYX_TEST&offset=3
+Content-Type: application/json

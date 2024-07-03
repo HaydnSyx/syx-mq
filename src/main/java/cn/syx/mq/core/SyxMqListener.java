@@ -2,7 +2,7 @@ package cn.syx.mq.core;
 
 import cn.syx.mq.model.SyxMessage;
 
-public interface SyxMqListener<T> {
+public interface SyxMqListener {
 
-    void onMessage(SyxMessage<T> msg);
+    void onMessage(SyxMessage<?> msg);
 }

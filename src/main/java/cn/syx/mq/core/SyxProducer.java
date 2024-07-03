@@ -12,14 +12,8 @@ public class SyxProducer {
         this.broker = broker;
     }
 
-    public <T> boolean send(String topic, SyxMessage<T> msg) {
-        // 通过topic查找mq队列
-        SyxMq<T> mq = broker.find(topic);
-        // 不存在则报错
-        if (Objects.isNull(mq)) {
-            throw new RuntimeException("topic not found");
-        }
+    public boolean send(String topic, SyxMessage<?> msg) {
         // 发送
-        return mq.send(msg);
+        return broker.send(topic, msg);
     }
 }

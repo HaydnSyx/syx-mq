@@ -1,3 +1,4 @@
+/*
 package cn.syx.mq.core;
 
 import cn.syx.mq.model.SyxMessage;
@@ -31,3 +32,4 @@ public class SyxMq<T> {
         listeners.add(listen);
     }
 }
+*/

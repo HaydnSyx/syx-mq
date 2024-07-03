@@ -1,8 +1,14 @@
 package cn.syx.mq.model;
 
-import lombok.Builder;
+import lombok.*;
+
+import java.util.List;
 
 @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Result<T> {
     private int code;
     private String message;
@@ -38,6 +44,14 @@ public class Result<T> {
                 .code(1)
                 .message("success")
                 .data(message)
+                .build();
+    }
+
+    public static Result<List<SyxMessage<?>>> msg(List<SyxMessage<?>> messages) {
+        return Result.<List<SyxMessage<?>>>builder()
+                .code(1)
+                .message("success")
+                .data(messages)
                 .build();
     }
 }
