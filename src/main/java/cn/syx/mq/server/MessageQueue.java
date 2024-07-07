@@ -1,6 +1,8 @@
 package cn.syx.mq.server;
 
 import cn.syx.mq.model.SyxMessage;
+import cn.syx.mq.store.Indexer;
+import cn.syx.mq.store.Store;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,30 +20,30 @@ public class MessageQueue {
     private final Map<String, MessageSubscription> subscriptions = new HashMap<>();
 
     private final String topic;
-    private SyxMessage<?>[] queue = new SyxMessage[1024 * 10];
-    private int index = 0;
+    //    private SyxMessage<?>[] queue = new SyxMessage[1024 * 10];
+    private final Store store;
+//    private int index = 0;
 
     public MessageQueue(String topic) {
         this.topic = topic;
+        this.store = new Store(topic);
+        this.store.init();
     }
 
     public int send(SyxMessage<?> msg) {
-        if (index >= queue.length) {
+        /*if (index >= queue.length) {
             return -1;
-        }
+        }*/
 
         // 保存offset到头信息中
-        msg.wrapperOffset(index);
-
-        this.queue[index++] = msg;
-        return index;
+        int offset = store.pos();
+        msg.wrapperOffset(offset);
+        store.write(msg);
+        return offset;
     }
 
-    public SyxMessage<?> recv(int index) {
-        if (index <= this.index) {
-            return queue[index];
-        }
-        return null;
+    public SyxMessage<?> recv(int offset) {
+        return store.read(offset);
     }
 
     public void subscribe(MessageSubscription subscription) {
@@ -74,9 +76,10 @@ public class MessageQueue {
     }
 
     public static int send(String topic, SyxMessage<?> message) {
-        log.info("===> message_queue send topic:{}, message:{}", topic, JSON.toJSONString(message));
         MessageQueue queue = getQueueByTopic(topic);
-        return queue.send(message);
+        int send = queue.send(message);
+        log.info("===> message_queue send topic:{}, message:{}, send:{}", topic, JSON.toJSONString(message), send);
+        return send;
     }
 
     public static SyxMessage<?> recv(String topic, String consumerId, int index) {
@@ -92,7 +95,14 @@ public class MessageQueue {
         MessageQueue queue = getQueueByTopic(topic);
         MessageSubscription subscription = getSubscriptionByCid(consumerId, queue);
         // 取下一个位置
-        return queue.recv(subscription.getOffset() + 1);
+        int offset = subscription.getOffset();
+        int next_offset = 0;
+        if (offset > -1) {
+            Indexer.Entry entry = Indexer.getEntry(topic, offset);
+            assert entry != null;
+            next_offset = offset + entry.getLength();
+        }
+        return queue.recv(next_offset);
     }
 
     public static List<SyxMessage<?>> batchRecv(String topic, String consumerId, int size) {
@@ -100,7 +110,7 @@ public class MessageQueue {
         MessageQueue queue = getQueueByTopic(topic);
         MessageSubscription subscription = getSubscriptionByCid(consumerId, queue);
         // 取下一个位置
-        int offset = subscription.getOffset() + 1;
+        int offset = subscription.getOffset();
         List<SyxMessage<?>> messages = new ArrayList<>(size);
 
         for (int i = 0; i < size; i++) {
@@ -114,12 +124,12 @@ public class MessageQueue {
         return messages;
     }
 
-    public static int ack( String topic, String consumerId, int offset) {
+    public static int ack(String topic, String consumerId, int offset) {
         MessageQueue queue = getQueueByTopic(topic);
         MessageSubscription subscription = getSubscriptionByCid(consumerId, queue);
 
-        log.info("===> message_queue ack topic:{}, consumerId:{}, offset:{}, index:{}", topic, consumerId, offset, queue.index);
-        if (offset > subscription.getOffset() && offset <= queue.index) {
+        log.info("===> message_queue ack topic:{}, consumerId:{}, offset:{}", topic, consumerId, offset);
+        if (offset > subscription.getOffset() && offset < Store.LEN) {
             subscription.setOffset(offset);
             return offset;
         }

@@ -25,7 +25,7 @@ public class SyxMqDemo {
         SyxProducer producer = broker.createProducer();
         SyxConsumer<Order> consumer = broker.createConsumer();
         consumer.subscribe(topic);
-        consumer.listen(topic, message -> log.warn("onMessage => {}", JSON.toJSONString(message)));
+//        consumer.listen(topic, message -> log.warn("onMessage => {}", JSON.toJSONString(message)));
 
 //        Order order = new Order(ids, "item" + ids, 100);
 //        producer.send(topic, new SyxMessage<>(123, order, null));
@@ -35,13 +35,13 @@ public class SyxMqDemo {
             producer.send(topic, new SyxMessage<>(ids++, order, null));
         }
 
-//        for (int i = 0; i < 10; i++) {
-//            SyxMessage<Order> message = consumer.recv(topic);
-//            System.out.println(message);
-//            if (Objects.nonNull(message)) {
-//                consumer.ack(topic, message);
-//            }
-//        }
+        for (int i = 0; i < 10; i++) {
+            SyxMessage<Order> message = consumer.recv(topic);
+            System.out.println(message);
+            if (Objects.nonNull(message)) {
+                consumer.ack(topic, message);
+            }
+        }
 
         while (true) {
             char c = (char) System.in.read();
